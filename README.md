@@ -689,3 +689,89 @@ Ingress looks at URLs or domain names and forwards to the right service.
 
 You just want a simple website open to the world	LoadBalancer Service
 You have 5 apps (website, API, admin panel) and want to expose all on same IP	Ingress
+
+
+
+
+Persistent Volumes (PV)
+A Persistent Volume (PV) is storage space (like a hard disk) created inside the cluster.
+
+It lives outside the pod — so even if the pod dies, your data is safe.
+
+🧠 Think: PV = a real hard drive that your pods can use.
+
+
+Persistent Volume Claims (PVC)
+A PVC is like asking for storage.
+
+Pod says: "I need 10GB storage" ➔ PVC.
+
+Kubernetes finds a matching PV and connects it to the pod.
+
+🧠 Think: PVC = a storage request letter.
+
+
+
+
+Container Storage Interface (CSI)
+CSI is a standard way for Kubernetes to talk to any storage system (AWS EBS, Azure Disk, NFS, etc.).
+
+Thanks to CSI, Kubernetes can easily use many different storage types.
+
+🧠 Think: CSI = a translator between Kubernetes and storage companies.
+
+
+
+
+ConfigMap
+ConfigMap is for saving normal information (non-secret).
+
+Example: app settings, URLs, file names, environment variables.
+
+🧠 Think: ConfigMap = public settings for your apps.
+
+
+
+
+Secrets
+Secrets store sensitive information like passwords, tokens, certificates.
+
+They are encrypted (hidden) and not shown easily.
+
+🧠 Think: Secret = safe locker for important passwords.
+
+
+
+
+Storage Classes
+StorageClass defines how Kubernetes should create storage (speed, size, type).
+
+Example: fast SSDs, cheap slow disks, etc.
+
+You can set different storage policies.
+
+
+
+
+Service Mesh
+A Service Mesh handles communication between services inside Kubernetes.
+
+It can add features like automatic encryption, retries, traffic control without changing your app code.
+
+Popular Service Mesh: Istio, Linkerd.
+
+
+
+CoreDNS- It helps pods talk to each other using service names, not IP addresses.
+
+
+
+
+Network Policies
+Network Policies control which pods can talk to which pods.
+
+Example: "Only allow web pods to talk to database pods, block others."
+
+Good for security inside the cluster.
+
+🧠 Think: Network Policy = firewall rules inside Kubernetes.
