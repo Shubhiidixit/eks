@@ -156,3 +156,86 @@ kubectl apply -f hpa.yaml
 Step-27: After performing the above commands, you can delete the service and cluster using the following commands:
 kubectl delete svc my-service  
 eksctl delete cluster --name my-eks-cluster
+
+
+
+minikube
+
+Minikube dashboard- 4)	This command opens a web-based interface for managing a local Kubernetes cluster created with Minikube. 
+
+This command retrieves a list of all pods running in all namespaces within the Minikube Kubernetes cluster.  
+minikube kubectl -- get po -A 
+
+
+
+Deploy Applications 
+ 
+i)Service 
+1) Create a sample deployment and expose it on port 8080: 
+kubectl create deployment hello-minikube --image=kicbase/echo-server:1.0
+kubectl expose deployment hello-minikube --type=NodePort --port=8080 
+
+
+
+2) The above command will take a moment but the deployment will soon show up when you run: 
+     kubectl get services hello-minikube 
+3) Now, the easiest way to access this service is to let the minikube launch a web browser for you: 
+     minikube service hello-minikube
+
+
+
+4) Alternatively, we can use kubectl to forward the port: 
+kubectl port-forward service/hello-minikube 7080:8080 
+
+
+
+Now we can access the application at:  
+http://localhost:7080/
+
+
+
+ii)Load Balancer 
+1) To use a LoadBalancer deployment, use the “minikube tunnel” command: 
+kubectl create deployment balanced --image=kicbase/echo-server:1.0 
+kubectl expose deployment balanced --type=LoadBalancer --port=8080 
+
+
+
+2) In another window, start the tunnel to create a routable IP for the ‘balanced’ deployment: 
+minikube tunnel
+
+
+
+3) To find the routable IP, run this command and examine the EXTERNALIP column:
+ kubectl get services balanced
+
+
+
+Your deployment is now available at <EXTERNAL-IP>:8080 
+Here in my case the External IP will be replaced by : 127.0.0.1 
+
+
+
+Manage Your Cluster 
+1)	To pause Kubernetes without impacting deployed applications, run: 
+minikube pause 
+2)	To unpause the paused instance, run: 
+minikube unpause 
+3)	To change the default memory limit run: 
+minikube config set memory 9001
+
+
+
+4)	To browse the catalog of easily installed Kubernetes services,run: 
+minikube addons list
+
+
+5)	To create a second cluser running an older Kubernetes release, run: 
+minikube start -p aged --kubernetes-version=v1.16.1
+6)	To halt the cluser, run: 
+minikube stop
+7) To delete all the minikube clusters, run: 
+minikube delete –all
+
+
+
