@@ -488,3 +488,204 @@ Step 10: Get the external IP of Grafana-loki service
 Copy the external IP, it will be used in the next step 
 Step 11: Open Grafana in a browser using- http://<external_ip> 
 Grafana login window will open.  
+
+
+
+It was originally designed by Google and is now maintained by the Cloud Native Computing Foundation (CNCF).
+
+Key Features of Kubernetes:
+Automated deployment and scaling of containers
+
+Self-healing (automatically restarts failed containers, replaces and reschedules containers)
+
+Load balancing and service discovery
+
+Storage orchestration (mount volumes like local storage, public cloud providers, etc.)
+
+Automated rollouts and rollbacks
+
+Secret and configuration management
+
+Extensibility (through custom resources, operators, etc.)
+
+
+
+
+Node	A worker machine (VM or physical)
+Cluster	A set of nodes managed by Kubernetes
+Deployment	Defines how to deploy pods
+Service	Exposes pods to the network
+ConfigMap & Secret	Manages configuration and sensitive data
+Ingress	HTTP and HTTPS routing to services
+
+
+
+User
+ ↓
+kubectl (CLI)
+ ↓
+API Server (Master Node)
+ ↓
+Scheduler, Controller Manager, etcd (Cluster State)
+ ↓
+Worker Nodes (kubelet, kube-proxy, container runtime like containerd)
+ ↓
+Pods (containers)
+
+
+
+
+# Check cluster nodes
+kubectl get nodes
+
+# Deploy an app
+kubectl create deployment myapp --image=nginx
+
+# Expose app to the internet
+kubectl expose deployment myapp --port=80 --type=LoadBalancer
+
+# View running pods
+kubectl get pods
+
+# Scale application
+kubectl scale deployment myapp --replicas=3
+
+# Delete deployment
+kubectl delete deployment myapp
+
+
+
+
+🧠 Simple line: Namespace = a way to separate apps into groups.
+
+🧠 Simple line: Pod = a running container or app inside Kubernetes.
+
+
+
+
+A ReplicaSet makes sure the right number of copies (pods) are always running.
+
+If one pod crashes, ReplicaSet quickly makes a new one.
+
+🧠 Simple line: ReplicaSet = keeps the right number of pod copies alive.
+
+
+
+
+StatefulSet helps run apps that should not lose their memory even after restarting.
+
+It gives each pod a stable identity, like a name and storage.
+
+🧠 Simple line: StatefulSet = for apps that need to save and remember information.
+
+
+
+
+
+
+
+
+🧠 Simple line: DaemonSet = runs one pod on every computer.
+
+
+
+
+Stateless apps are apps that don’t need to remember anything.
+
+Example: A website server that just shows you a page and doesn't care who you are.
+
+These apps use Deployments + ReplicaSets instead of StatefulSets.
+
+🧠 Simple line: Stateless = apps that don't save or remember information.
+
+
+
+It controls who can enter and how traffic flows into your cluster.
+
+Example: A website domain (like mywebsite.com) sends people to the correct app inside Kubernetes.
+
+🧠 Simple line: Ingress = manages outside traffic into your apps.
+
+
+
+
+
+
+ClusterIP
+Default way of exposing a service.
+
+Only available inside the cluster.
+
+Apps talk to each other, but users outside can't.
+
+🧠 Think: ClusterIP = private internal address.
+
+
+
+
+
+NodePort
+Opens a port on every worker machine.
+
+You can access the app using:
+
+http://<Node-IP>:<NodePort>
+Simple but not very secure or flexible.
+
+🧠 Think: NodePort = open a door on every machine.
+
+
+
+
+ReplicaSet ensures a fixed number of pods are always running.
+➔ Example: "Always keep 5 pods running."
+
+BUT...
+
+ReplicaSet doesn't automatically change the number of pods based on traffic or CPU usage. ➔ Even if your app gets super busy or super idle, ReplicaSet won't adjust the number of pods.
+
+
+
+
+✅ So ReplicaSet and HPA work together:
+
+ReplicaSet knows how to create and manage pods.
+
+HPA tells ReplicaSet how many pods it should run based on current load.
+
+
+
+If VMs (nodes) are getting full (no more space to run new pods), then we need another tool called Cluster Autoscaler.
+
+Cluster Autoscaler will add more VMs when needed and remove VMs when they are empty.
+
+
+
+
+
+
+External LoadBalancer Service
+When you create a Kubernetes Service of type LoadBalancer, Kubernetes asks the cloud provider (like AWS, GCP, Azure) to create a real external Load Balancer.
+
+This Load Balancer gets a public IP address.
+
+Traffic from outside the internet can directly reach your app
+
+Type http://public-ip	
+
+
+
+
+Ingress
+Ingress is NOT a service by itself; it is a traffic controller.
+
+You combine Ingress with a Service to smartly route HTTP/HTTPS traffic.
+
+You don't open many public IPs — instead, you have one single entry point.
+
+Ingress looks at URLs or domain names and forwards to the right service.
+
+
+
+You just want a simple website open to the world	LoadBalancer Service
+You have 5 apps (website, API, admin panel) and want to expose all on same IP	Ingress
