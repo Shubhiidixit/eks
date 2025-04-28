@@ -239,3 +239,252 @@ minikube delete –all
 
 
 
+ecs policy
+
+Add the following json in the policy and save. 
+{
+           "Version": "2012-10-17", 
+           "Statement": [ 
+       { 
+              "Sid": "VisualEditor0", 
+               "Effect": "Allow",
+                "Action": [
+                             "ecr-public:*", 
+                           "sts:GetServiceBearerToken"
+                                    ], 
+                  "Resource": "*" 
+       }
+    ]
+ }
+
+
+Now attach other permissions. Click on “Attach Policy directly”.=- ec2 cpmtainer regsitry
+
+
+
+while creating ecs cluster- AmazonECSTaskExecutionRolePolicy- Click on next and fill the role name and proceed with “Create role”
+
+
+
+
+extra
+
+The command chmod +x eksctl.sh is used to grant execute permissions (+x) to the file named eksctl.sh. 
+➔ The command sudo sh eksctl.sh is attempting to run the script named eksctl.sh that we created. 
+➔ The command ekstcl version is used to see the version of eksctl being installed 
+
+
+
+To verify the cluster information and and to see nodes status run the following commands- 
+kubectl get nodes 
+kubectl cluster-info
+
+
+
+
+Deploying a sample application 
+Step 21: Create a sample “app.py” file using any editor (vi, nano, vim)
+
+
+
+
+Sample python application- This Python script is a Flask application that generates access and infrastructure logs, 
+saves them to local files. 
+from flask import Flask 
+import logging 
+import threading 
+import time 
+import random 
+import string 
+app = Flask(__name__) 
+# Configure logging to file 
+logging.basicConfig( 
+level=logging.INFO, 
+format='%(asctime)s - %(levelname)s - %(message)s', 
+handlers=[ 
+logging.FileHandler("application.log"),  # Access logs 
+logging.StreamHandler()  # Console output (optional) 
+] 
+) 
+# Define the logger for infrastructure logs 
+infra_logger = logging.getLogger('infra') 
+infra_logger.setLevel(logging.INFO) 
+infra_handler = logging.FileHandler("infrastructure.log") 
+infra_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')) 
+infra_logger.addHandler(infra_handler) 
+# Flask endpoint 
+@app.route('/') 
+def home(): 
+app.logger.info('Home endpoint accessed') 
+return 'Hello, Kubernetes!.' 
+# Background thread to generate logs 
+def generate_logs(): 
+while True: 
+# Generate application logs 
+app.logger.info('Application log: Random processing task completed.') 
+# Generate infrastructure logs 
+infra_logger.info('Infrastructure log: CPU usage: %s%%, Memory usage: %s%%', 
+random.randint(1, 100), random.randint(1, 100)) 
+time.sleep(5)  # Delay between log entries 
+if __name__ == '__main__': 
+# Start the log generator in a separate thread 
+threading.Thread(target=generate_logs, daemon=True).start() 
+# Start Flask application 
+app.run(host='0.0.0.0', port=8080)
+
+
+
+
+
+Create a “Dockerfile” for this setup 
+# Base image 
+FROM python:3.9-slim 
+# Set the working directory in the container 
+WORKDIR /app 
+# Copy application files to the working directory 
+COPY app.py /app 
+# Install Flask 
+RUN pip install flask 
+# Expose the port the app runs on 
+EXPOSE 8080 
+# Command to run the application 
+CMD ["python", "app.py"] 
+
+
+
+
+
+Create an ECR repository named “python-app” 
+aws ecr create-repository --repository-name python-app 
+
+
+
+
+ Build the image of the sample application using command- docker build -t python-app . 
+
+
+
+
+Tag the image - docker tag python-app:latest 484907519425.dkr.ecr.us-east-1.amazonaws.com/python-app:latest
+
+ Push the image to ECR using- docker push 484907519425.dkr.ecr.us-east-1.amazonaws.com/python-app:latest 
+
+
+
+ The image has been successfully pushed to ECR. You can verify it by checking the repository and its 
+image. 
+
+
+
+
+
+ Now create a “deployment.yaml” file using any editor and copy the following yaml code. 
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+name: python-app 
+labels: 
+app: python-app 
+spec: 
+replicas: 3 
+selector: 
+matchLabels: 
+app: python-app 
+template: 
+metadata: 
+      labels: 
+        app: python-app 
+    spec: 
+      containers: 
+      - name: python-app 
+        image: <account-id>.dkr.ecr.<aws-region>.amazonaws.com/python-app:latest 
+        ports: 
+        - containerPort: 80 
+        resources: 
+          requests: 
+            memory: "128Mi" 
+            cpu: "250m" 
+          limits: 
+            memory: "256Mi" 
+            cpu: "500m" --- 
+apiVersion: v1 
+kind: Service 
+metadata: 
+  name: python-app-service 
+spec: 
+  selector: 
+    app: python-app 
+  ports: 
+  - protocol: TCP 
+    port: 80 
+    targetPort: 80 
+  type: LoadBalancer 
+NOTE: MAKE SURE THE INDENTATION OF THE YAML FILE IS SAME AS SHOWN OTHERWISE IT 
+WILL THROW MAPPING ERROR
+
+
+
+ Deploy the sample application to your EKS cluster:  
+kubectl apply -f deployment.yaml 
+
+
+
+
+To display the status of all pods in the Kubernetes cluster or a specific namespace use- kubectl get pods 
+➔ To list all services in the cluster, providing details about how applications are exposed use- kubectl get svc 
+
+
+hpa.yaml
+
+
+ kubectl get hpa: Use this command to view the status of Horizontal Pod Autoscalers (HPA), including 
+current and desired pod counts. 
+
+
+kubectl top pods: Use this command to check resource usage (CPU and memory) of each pod in the cluster.
+
+kubectl top nodes: Use this command to view resource usage (CPU and memory) for all nodes in the 
+cluster.
+
+
+
+
+Step 1: Install Helm, download the latest helm binary 
+➔ Helm is a package manager for Kubernetes that simplifies the deployment and management of 
+applications and services. 
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+
+
+Verify the installation using- helm version
+
+
+ Use helm to deploy loki 
+Note- Loki will run as a service in your cluster. 
+➔ helm repo add grafana https://grafana.github.io/helm-charts - Adds the official Grafana Helm chart 
+repository to your local Helm setup so you can access Grafana-related charts like Loki. 
+
+
+helm install loki grafana/loki-stack --namespace logging --create-namespace - Installs the Loki logging 
+stack from the Grafana Helm chart repository into the logging namespace (and creates the namespace if it 
+doesn’t exist).
+
+
+Step 4: Check if loki pods are running- kubectl get pods -n logging
+
+
+ To display all Kubernetes resources in logging namespace use- kubectl get all -n logging
+
+
+Again check by running all pods status - kubectl get pods -n logging 
+➔ kubectl get svc -n logging-  Lists all services in the logging namespace to see their ClusterIP and exposed 
+ports.
+
+
+Step 10: Get the external IP of Grafana-loki service 
+
+![image](https://github.com/user-attachments/assets/821f8261-a035-462e-93a3-0d46e1ea51e3)
+
+Copy the external IP, it will be used in the next step 
+Step 11: Open Grafana in a browser using- http://<external_ip> 
+Grafana login window will open.  
